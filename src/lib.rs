@@ -74,8 +74,6 @@ pub enum Bandwidth {
 	Superwideband = ffi::OPUS_BANDWIDTH_SUPERWIDEBAND,
 	/// 20kHz bandpass.
 	Fullband = ffi::OPUS_BANDWIDTH_FULLBAND,
-	/// 24kHz bandpass.
-	ActualFullband = ffi::OPUS_BANDWIDTH_ACTUALFULLBAND,
 }
 
 impl Bandwidth {
@@ -87,7 +85,6 @@ impl Bandwidth {
 			b if b == ffi::OPUS_BANDWIDTH_WIDEBAND as i32 => Some(Bandwidth::Wideband),
 			b if b == ffi::OPUS_BANDWIDTH_SUPERWIDEBAND as i32 => Some(Bandwidth::Superwideband),
 			b if b == ffi::OPUS_BANDWIDTH_FULLBAND as i32 => Some(Bandwidth::Fullband),
-			b if b == ffi::OPUS_BANDWIDTH_ACTUALFULLBAND as i32 => Some(Bandwidth::ActualFullband),
 			_ => None,
 		}
 	}
