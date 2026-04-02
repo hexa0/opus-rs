@@ -21,3 +21,9 @@ edition = "2015"
 
 [dependencies]
 audiopus_sys = { git = "https://github.com/hexa0/audiopus_sys.git", branch = "master" }
+
+[features]
+static = ["audiopus_sys/static"]
+qext = ["audiopus_sys/qext"]
+dred = ["audiopus_sys/dred"]
+osce = ["audiopus_sys/osce"]
