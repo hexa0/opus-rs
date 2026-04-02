@@ -816,6 +816,13 @@ macro_rules! decoder_ctls {
 				ctl!($fn, self, ffi::OPUS_GET_PITCH_REQUEST, &mut value);
 				Ok(value)
 			}
+
+			/// Gets the decoders's configured quality extension (QEXT) status.
+			pub fn get_qext(&mut self) -> Result<bool> {
+				let mut value: i32 = 0;
+				ctl!($fn, self, ffi::OPUS_GET_QEXT_REQUEST, &mut value);
+				Ok(value != 0)
+			}
 		}
 	};
 }
