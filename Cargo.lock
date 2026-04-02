@@ -5,7 +5,7 @@ version = 4
 [[package]]
 name = "audiopus_sys"
 version = "0.2.2"
-source = "git+https://github.com/hexa0/audiopus_sys.git?branch=master#1d54389a9e7d4e96b494cbe351d1ba099018c813"
+source = "git+https://github.com/hexa0/audiopus_sys.git?branch=master#e2a3cc957b3fca7b0dc894477377cde92980e028"
 dependencies = [
  "cmake",
  "log",
