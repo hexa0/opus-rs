@@ -665,6 +665,22 @@ macro_rules! encoder_ctls {
 
 			// TODO(#5): OPUS_SET/GET_DRED_DURATION (since Opus 1.5)
 			// TODO(#5): OPUS_SET_DNN_BLOB (since Opus 1.5)
+
+			/// If set to true, enables quality extension (QEXT), otherwise disables it (default).
+			///
+			/// Note: This is an experimental feature primarily used to bypass standard bandwidth limits.
+			pub fn set_qext(&mut self, enabled: bool) -> Result<()> {
+				let value: i32 = if enabled { 1 } else { 0 };
+				ctl!($fn, self, ffi::OPUS_SET_QEXT_REQUEST, value);
+				Ok(())
+			}
+
+			/// Gets the encoder's configured quality extension (QEXT) status.
+			pub fn get_qext(&mut self) -> Result<bool> {
+				let mut value: i32 = 0;
+				ctl!($fn, self, ffi::OPUS_GET_QEXT_REQUEST, &mut value);
+				Ok(value != 0)
+			}
 		}
 	};
 }
