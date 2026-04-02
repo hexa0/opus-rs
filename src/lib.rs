@@ -24,7 +24,7 @@ use std::os::raw::c_int;
 
 /// The possible applications for the codec.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-#[repr(i32)]
+#[repr(u32)]
 pub enum Application {
 	/// Best for most VoIP/videoconference applications where listening quality
 	/// and intelligibility matter most.
@@ -38,7 +38,7 @@ pub enum Application {
 
 impl Application {
 	fn from_raw(raw: i32, what: &'static str) -> Result<Application> {
-		match raw {
+		match raw as u32 {
 			ffi::OPUS_APPLICATION_VOIP => Ok(Application::Voip),
 			ffi::OPUS_APPLICATION_AUDIO => Ok(Application::Audio),
 			ffi::OPUS_APPLICATION_RESTRICTED_LOWDELAY => Ok(Application::LowDelay),
@@ -58,12 +58,12 @@ pub enum Channels {
 
 /// The available bandwidth level settings.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-#[repr(i32)]
+#[repr(u32)]
 #[derive(Default)]
 pub enum Bandwidth {
 	/// Auto/default setting.
 	#[default]
-	Auto = ffi::OPUS_AUTO,
+	Auto = ffi::OPUS_AUTO as u32,
 	/// 4kHz bandpass.
 	Narrowband = ffi::OPUS_BANDWIDTH_NARROWBAND,
 	/// 6kHz bandpass.
@@ -78,15 +78,15 @@ pub enum Bandwidth {
 
 impl Bandwidth {
 	fn from_int(value: i32) -> Option<Bandwidth> {
-		Some(match value {
-			ffi::OPUS_AUTO => Bandwidth::Auto,
-			ffi::OPUS_BANDWIDTH_NARROWBAND => Bandwidth::Narrowband,
-			ffi::OPUS_BANDWIDTH_MEDIUMBAND => Bandwidth::Mediumband,
-			ffi::OPUS_BANDWIDTH_WIDEBAND => Bandwidth::Wideband,
-			ffi::OPUS_BANDWIDTH_SUPERWIDEBAND => Bandwidth::Superwideband,
-			ffi::OPUS_BANDWIDTH_FULLBAND => Bandwidth::Fullband,
-			_ => return None,
-		})
+		match value {
+			b if b == ffi::OPUS_AUTO => Some(Bandwidth::Auto),
+			b if b == ffi::OPUS_BANDWIDTH_NARROWBAND as i32 => Some(Bandwidth::Narrowband),
+			b if b == ffi::OPUS_BANDWIDTH_MEDIUMBAND as i32 => Some(Bandwidth::Mediumband),
+			b if b == ffi::OPUS_BANDWIDTH_WIDEBAND as i32 => Some(Bandwidth::Wideband),
+			b if b == ffi::OPUS_BANDWIDTH_SUPERWIDEBAND as i32 => Some(Bandwidth::Superwideband),
+			b if b == ffi::OPUS_BANDWIDTH_FULLBAND as i32 => Some(Bandwidth::Fullband),
+			_ => None,
+		}
 	}
 
 	fn decode(value: i32, what: &'static str) -> Result<Bandwidth> {
@@ -176,12 +176,12 @@ impl Bitrate {
 
 /// Possible signal types. Hints for the encoder's mode selection.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-#[repr(i32)]
+#[repr(u32)]
 #[derive(Default)]
 pub enum Signal {
 	/// Auto/default setting.
 	#[default]
-	Auto = ffi::OPUS_AUTO,
+	Auto = ffi::OPUS_AUTO as u32,
 	/// Bias thresholds towards choosing LPC or Hybrid modes.
 	Voice = ffi::OPUS_SIGNAL_VOICE,
 	/// Bias thresholds towards choosing MDCT modes.
@@ -191,9 +191,9 @@ pub enum Signal {
 impl Signal {
 	fn from_raw(raw: i32, what: &'static str) -> Result<Signal> {
 		match raw {
-			ffi::OPUS_AUTO => Ok(Signal::Auto),
-			ffi::OPUS_SIGNAL_VOICE => Ok(Signal::Voice),
-			ffi::OPUS_SIGNAL_MUSIC => Ok(Signal::Music),
+			s if s == ffi::OPUS_AUTO => Ok(Signal::Auto),
+			s if s == ffi::OPUS_SIGNAL_VOICE as i32 => Ok(Signal::Voice),
+			s if s == ffi::OPUS_SIGNAL_MUSIC as i32 => Ok(Signal::Music),
 			_ => Err(Error::bad_arg(what)),
 		}
 	}
@@ -205,7 +205,7 @@ impl Signal {
 
 /// Possible frame sizes. Controls encoder's use of variable duration frames.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-#[repr(i32)]
+#[repr(u32)]
 #[derive(Default)]
 pub enum FrameSize {
 	/// Select frame size from the argument (default).
@@ -233,7 +233,7 @@ pub enum FrameSize {
 
 impl FrameSize {
 	fn from_raw(raw: i32, what: &'static str) -> Result<FrameSize> {
-		match raw {
+		match raw as u32 {
 			ffi::OPUS_FRAMESIZE_ARG => Ok(FrameSize::Arg),
 			ffi::OPUS_FRAMESIZE_2_5_MS => Ok(FrameSize::Ms2_5),
 			ffi::OPUS_FRAMESIZE_5_MS => Ok(FrameSize::Ms5),
@@ -277,7 +277,7 @@ macro_rules! ffi {
 
 macro_rules! ctl {
 	($f:ident, $this:ident, $ctl:path $(, $rest:expr)*) => {
-		match unsafe { ffi::$f($this.ptr, $ctl $(, $rest)*) } {
+		match unsafe { ffi::$f($this.ptr, $ctl as c_int $(, $rest)*) } {
 			code if code < 0 => return Err(Error::from_code(
 				concat!(stringify!($f), "(", stringify!($ctl), ")"),
 				code,
@@ -382,7 +382,7 @@ impl Encoder {
 				&mut error,
 			)
 		};
-		if error != ffi::OPUS_OK || ptr.is_null() {
+		if error != ffi::OPUS_OK as i32 || ptr.is_null() {
 			Err(Error::from_code("opus_encoder_create", error))
 		} else {
 			Ok(Encoder { ptr, channels })
@@ -713,7 +713,7 @@ impl Decoder {
 		let mut error = 0;
 		let ptr =
 			unsafe { ffi::opus_decoder_create(sample_rate as i32, channels as c_int, &mut error) };
-		if error != ffi::OPUS_OK || ptr.is_null() {
+		if error != ffi::OPUS_OK as i32 || ptr.is_null() {
 			Err(Error::from_code("opus_decoder_create", error))
 		} else {
 			Ok(Decoder { ptr, channels })
@@ -1144,7 +1144,7 @@ impl MSEncoder {
 				&mut error,
 			)
 		};
-		if error != ffi::OPUS_OK || ptr.is_null() {
+		if error != ffi::OPUS_OK as i32 || ptr.is_null() {
 			Err(Error::from_code("opus_multistream_encoder_create", error))
 		} else {
 			Ok(MSEncoder { ptr, channels: len(mapping) })
@@ -1237,7 +1237,7 @@ impl MSDecoder {
 				&mut error,
 			)
 		};
-		if error != ffi::OPUS_OK || ptr.is_null() {
+		if error != ffi::OPUS_OK as i32 || ptr.is_null() {
 			Err(Error::from_code("opus_multistream_decoder_create", error))
 		} else {
 			Ok(MSDecoder { ptr, channels: len(mapping) })
